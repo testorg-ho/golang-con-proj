@@ -56,6 +56,4 @@ func DeleteDirsWithYesterdayDate(baseDir string) error {
 	})
 }
 
-
-
-// find /path/to/base/directory -type d -name "*-$(date -v-1d +%Y-%m-%d)" -exec rm -rf {} +
+// find /tmp/test -type d -name "*-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]" ! -name "*-$(date $([ "$(uname)" = "Darwin" ] && echo "-v-0d" || echo "--date=today") +%Y-%m-%d)" -exec rm -rf {} +
