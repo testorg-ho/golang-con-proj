@@ -12,11 +12,21 @@ type GitHubClient interface {
 
 type DefaultGitHubClient struct {
 	createRepos bool
+	Username    string
+	Password    string
+	URL         string
 }
 
-func NewDefaultGitHubClient() *DefaultGitHubClient {
-	createRepos := os.Getenv("CREATE_REPOS") == "true"
-	return &DefaultGitHubClient{createRepos: createRepos}
+func NewDefaultGitHubClient(createRepos bool) *DefaultGitHubClient {
+	username := os.Getenv("GITHUB_USERNAME")
+	password := os.Getenv("GITHUB_PASSWORD")
+	url := os.Getenv("GITHUB_URL")
+	return &DefaultGitHubClient{
+		createRepos: createRepos,
+		Username:    username,
+		Password:    password,
+		URL:         url,
+	}
 }
 
 func (c *DefaultGitHubClient) CreateRepo(name string) error {

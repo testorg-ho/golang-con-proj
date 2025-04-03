@@ -69,6 +69,30 @@ go build -o golang-console-project
 
 This will create an executable named `golang-console-project` in the current directory.
 
+## Mock Generation
+
+To generate mocks for the interfaces used in this project, use the following commands:
+
+```bash
+# Generate mock for OpsLevelClient
+mockgen -source=internal/opslevel/client.go -destination=internal/opslevel/mocks/mock_client.go -package=mocks
+
+# Generate mock for GitHubClient
+mockgen -source=internal/github/client.go -destination=internal/github/mocks/mock_client.go -package=mocks
+```
+
+Ensure that `mockgen` is installed and available in your `PATH`. You can install it using:
+
+```bash
+go install github.com/golang/mock/mockgen@latest
+```
+
+Add the `GOPATH/bin` directory to your `PATH` if necessary:
+
+```bash
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
