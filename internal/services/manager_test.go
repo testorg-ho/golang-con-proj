@@ -16,7 +16,7 @@ type MockOpsLevelClient struct {
 }
 
 func (m *MockOpsLevelClient) GetServices() ([]opslevel.Service, error) {
-	args := m.Called()
+	args := m.Called() 
 	return args.Get(0).([]opslevel.Service), args.Error(1)
 }
 
