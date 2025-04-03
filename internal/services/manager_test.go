@@ -4,34 +4,51 @@ import (
 	"errors"
 	"testing"
 
-	"golang-console-project/internal/github"
 	"golang-console-project/internal/opslevel"
-	"golang-console-project/internal/opslevel/mocks"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
+// MockOpsLevelClient is a mock implementation of the OpsLevelClient interface.
+type MockOpsLevelClient struct {
+	mock.Mock
+}
+
+func (m *MockOpsLevelClient) GetServices() ([]opslevel.Service, error) {
+	args := m.Called()
+	return args.Get(0).([]opslevel.Service), args.Error(1)
+}
+
+// MockGitHubClient is a mock implementation of the GitHubClient interface.
+type MockGitHubClient struct {
+	mock.Mock
+}
+
+func (m *MockGitHubClient) CreateRepo(name string) error {
+	args := m.Called(name)
+	return args.Error(0)
+}
+
 func TestManageServices(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockOpsClient := mocks.NewMockOpsLevelClient(ctrl)
-	mockGitClient := github.NewMockGitHubClient(ctrl)
+	mockOpsClient := new(MockOpsLevelClient)
+	mockGitClient := new(MockGitHubClient)
 
 	services := []opslevel.Service{
 		{Name: "service1"},
 		{Name: "service2"},
 	}
 
-	// Mock opsClient.GetServices to return the services list
-	mockOpsClient.EXPECT().GetServices().Return(services, nil).Times(1)
+	// Set up expectations for the mock clients
+	mockOpsClient.On("GetServices").Return(services, nil)
+	mockGitClient.On("CreateRepo", "service1").Return(nil)
+	mockGitClient.On("CreateRepo", "service2").Return(errors.New("repo creation failed"))
 
-	// Mock gitClient.CreateRepo to be called for each service
-	mockGitClient.EXPECT().CreateRepo("service1").Return(nil).Times(1)
-	mockGitClient.EXPECT().CreateRepo("service2").Return(errors.New("repo creation failed")).Times(1)
-
+	// Call the function under test
 	err := ManageServices(mockOpsClient, mockGitClient)
 
-	// Assert no error is returned from ManageServices
+	// Assert expectations
 	assert.NoError(t, err)
+	mockOpsClient.AssertExpectations(t)
+	mockGitClient.AssertExpectations(t)
 }
