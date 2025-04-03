@@ -66,3 +66,59 @@ func TestManageServices(t *testing.T) {
 		return arg == "service2"
 	}))
 }
+
+
+func TestManageServicesParam(t *testing.T) {
+    tests := []struct {
+        name          string
+        services      []opslevel.Service
+        mockGitClient func() *MockGitHubClient
+        expectedError error
+    }{
+        {
+            name: "All repositories created successfully",
+            services: []opslevel.Service{
+                {Name: "service1"},
+                {Name: "service2"},
+            },
+            mockGitClient: func() *MockGitHubClient {
+                mockGitClient := new(MockGitHubClient)
+                mockGitClient.On("CreateRepo", "service1").Return(nil).Once()
+                mockGitClient.On("CreateRepo", "service2").Return(nil).Once()
+                return mockGitClient
+            },
+            expectedError: nil,
+        },
+        {
+            name: "One repository creation fails",
+            services: []opslevel.Service{
+                {Name: "service1"},
+                {Name: "service2"},
+            },
+            mockGitClient: func() *MockGitHubClient {
+                mockGitClient := new(MockGitHubClient)
+                mockGitClient.On("CreateRepo", "service1").Return(nil).Once()
+                mockGitClient.On("CreateRepo", "service2").Return(errors.New("repo creation failed")).Once()
+                return mockGitClient
+            },
+            expectedError: nil, // ManageServices might handle errors internally
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            mockOpsClient := new(MockOpsLevelClient)
+            mockOpsClient.On("GetServices").Return(tt.services, nil)
+
+            mockGitClient := tt.mockGitClient()
+
+            // Call the function under test
+            err := ManageServices(mockOpsClient, mockGitClient)
+
+            // Assert expectations
+            assert.Equal(t, tt.expectedError, err)
+            mockOpsClient.AssertExpectations(t)
+            mockGitClient.AssertExpectations(t)
+        })
+    }
+}
