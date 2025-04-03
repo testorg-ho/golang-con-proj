@@ -41,8 +41,8 @@ func TestManageServices(t *testing.T) {
 
 	// Set up expectations for the mock clients
 	mockOpsClient.On("GetServices").Return(services, nil)
-	mockGitClient.On("CreateRepo", "service1").Return(nil)
-	mockGitClient.On("CreateRepo", "service2").Return(errors.New("repo creation failed"))
+	mockGitClient.On("CreateRepo", "service1").Return(nil).Once()
+	mockGitClient.On("CreateRepo", "service2").Return(errors.New("repo creation failed")).Once()
 
 	// Call the function under test
 	err := ManageServices(mockOpsClient, mockGitClient)
@@ -56,7 +56,13 @@ func TestManageServices(t *testing.T) {
 	mockOpsClient.AssertNumberOfCalls(t, "GetServices", 1)
 	mockGitClient.AssertNumberOfCalls(t, "CreateRepo", 2)
 
-	// Verify CreateRepo called with expected arguments
+	// Verify CreateRepo called with expected arguments in sequence
 	mockGitClient.AssertCalled(t, "CreateRepo", "service1")
 	mockGitClient.AssertCalled(t, "CreateRepo", "service2")
+	mockGitClient.AssertCalled(t, "CreateRepo", mock.MatchedBy(func(arg string) bool {
+		return arg == "service1"
+	}))
+	mockGitClient.AssertCalled(t, "CreateRepo", mock.MatchedBy(func(arg string) bool {
+		return arg == "service2"
+	}))
 }
