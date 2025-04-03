@@ -16,7 +16,7 @@ type MockOpsLevelClient struct {
 }
 
 func (m *MockOpsLevelClient) GetServices() ([]opslevel.Service, error) {
-	args := m.Called() 
+	args := m.Called()
 	return args.Get(0).([]opslevel.Service), args.Error(1)
 }
 
@@ -51,4 +51,12 @@ func TestManageServices(t *testing.T) {
 	assert.NoError(t, err)
 	mockOpsClient.AssertExpectations(t)
 	mockGitClient.AssertExpectations(t)
+
+	// Verify the number of calls
+	mockOpsClient.AssertNumberOfCalls(t, "GetServices", 1)
+	mockGitClient.AssertNumberOfCalls(t, "CreateRepo", 2)
+
+	// Verify CreateRepo called with expected arguments
+	mockGitClient.AssertCalled(t, "CreateRepo", "service1")
+	mockGitClient.AssertCalled(t, "CreateRepo", "service2")
 }
